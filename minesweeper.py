@@ -270,6 +270,7 @@ def loop():
             playing = True
             win = False
             ticks = 0
+            last_time = time()
 
             build_grid(grid)
             fill_grid(grid, MINES)
