@@ -160,6 +160,10 @@ def draw_bottom_bar(ticks: float, playing: bool, win: bool):
         else:
             texte(BOARD_WIDTH * CELL_SIZE - 10 - offset, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT // 2, "Gagné !",
                   ancrage='e', couleur='green', taille=24)
+    else:
+        xa, ya, xb, yb = draw_label(BOARD_WIDTH * CELL_SIZE - 5, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT - 5, 'Quitter',
+                                    'se')
+        buttons[(xa, ya, xb, yb)] = lambda: set_running(False)
 
 
 def left_click(ev):
@@ -191,9 +195,11 @@ def mark(discovered, marked, unknown, ev):
 
 def discover(grid, discovered, ev):
     x, y = pixel_to_cell(abscisse(ev), ordonnee(ev))
+    if not (0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT):
+        return 0
     if grid[y][x]:
         return -1
-    if (0 <= x <= BOARD_WIDTH and 0 <= y <= BOARD_HEIGHT) and (x, y) not in discovered:
+    if (x, y) not in discovered:
         discovered.update(explore(grid, x, y))
     if BOARD_WIDTH * BOARD_HEIGHT - MINES == len(discovered):
         return 1
@@ -242,7 +248,7 @@ def set_running(running):
 
 
 def loop():
-    creer_fenetre(BOARD_WIDTH * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT)
+    creer_fenetre(BOARD_WIDTH * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT, nom='Démineur')
     ecouter_ev("ClicGauche", left_click)
 
     grid = list()
