@@ -4,8 +4,8 @@ from time import time
 from upemtk import *
 
 CELL_SIZE = 30
-BOARD_WIDTH = 30  # 30
-BOARD_HEIGHT = 16  # 16
+BOARD_WIDTH = 30
+BOARD_HEIGHT = 16
 MINES = BOARD_HEIGHT * BOARD_WIDTH // 10
 FRAMERATE = 50
 BAR_HEIGHT = -1
@@ -15,7 +15,7 @@ RUNNING = True
 START = True
 
 
-def pixel_to_cell(x: float, y: float):
+def pixel_to_cell(x: int, y: int):
     return x // CELL_SIZE, y // CELL_SIZE
 
 
@@ -43,8 +43,8 @@ def fill_grid(grid: list, amount: int):
         amount -= 1
 
 
-def draw_label(x, y, text, anchor="center", outline="black", bg="white",
-               fg="black", size=24, force_width=0, force_height=0, margin=5):
+def draw_label(x: float, y: float, text: str, anchor: str = "center", outline: str = "black", bg: str = "white",
+               fg: str = "black", size: int = 24, force_width: int = 0, force_height: int = 0, margin: int = 5):
     width = force_width or taille_texte(text, taille=size)[0]
     height = force_height or taille_texte(text, taille=size)[1]
     if anchor == "center":
@@ -103,7 +103,7 @@ def count_adjacent_bombs(grid: list, x: int, y: int):
     return count
 
 
-def draw_flag(x, y):
+def draw_flag(x: int, y: int):
     thickness = CELL_SIZE / 20
     xt, yt = cell_to_pixel(x, y)
     ligne(xt, yt - CELL_SIZE // 3, xt, yt + CELL_SIZE // 3, epaisseur=thickness)
@@ -113,7 +113,7 @@ def draw_flag(x, y):
              remplissage='red', epaisseur=thickness)
 
 
-def draw_board(grid, discovered, marked, unknown, playing, win):
+def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: bool, win: bool):
     for y in range(len(grid)):
         for x in range(len(grid[y])):
             if (x, y) in discovered and not grid[y][x]:
@@ -166,7 +166,7 @@ def draw_bottom_bar(ticks: float, playing: bool, win: bool):
         buttons[(xa, ya, xb, yb)] = lambda: set_running(False)
 
 
-def left_click(ev):
+def left_click(ev: tuple):
     x, y = abscisse(ev), ordonnee(ev)
     for (xa, ya, xb, yb), f in buttons.items():
         if xa <= x <= xb and ya <= y <= yb:
@@ -176,11 +176,11 @@ def left_click(ev):
 def compute_text_size():
     global BAR_HEIGHT
     creer_fenetre(0, 0)
-    BAR_HEIGHT = taille_texte('X')[1] + 17.5
+    BAR_HEIGHT = taille_texte('X')[1] + 19
     fermer_fenetre()
 
 
-def mark(discovered, marked, unknown, ev):
+def mark(discovered: set, marked: set, unknown: set, ev: tuple):
     x, y = pixel_to_cell(abscisse(ev), ordonnee(ev))
     if not (0 <= x <= BOARD_WIDTH and 0 <= y <= BOARD_HEIGHT) or (x, y) in discovered:
         return
@@ -193,7 +193,7 @@ def mark(discovered, marked, unknown, ev):
         unknown.discard((x, y))
 
 
-def discover(grid, discovered, marked, unknown, ev):
+def discover(grid: list, discovered: set, marked: set, unknown: set, ev: tuple):
     x, y = pixel_to_cell(abscisse(ev), ordonnee(ev))
     if not (0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT) or (x, y) in marked or (x, y) in unknown:
         return 0
@@ -206,7 +206,7 @@ def discover(grid, discovered, marked, unknown, ev):
     return 0
 
 
-def explore(grid, x, y, area=None):
+def explore(grid: list, x: int, y: int, area: set = None):
     if not area:
         area = set()
 
@@ -237,12 +237,12 @@ def explore(grid, x, y, area=None):
     return area
 
 
-def set_start(start):
+def set_start(start: bool):
     global START
     START = start
 
 
-def set_running(running):
+def set_running(running: bool):
     global RUNNING
     RUNNING = running
 
