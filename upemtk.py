@@ -69,7 +69,7 @@ class CustomCanvas:
     }
     _default_ev = ['ClicGauche', 'ClicDroit', 'Touche']
 
-    def __init__(self, width, height, refresh_rate=100, events=None):
+    def __init__(self, width, height, refresh_rate=100, events=None, name=None):
         # width and height of the canvas
         self.width = width
         self.height = height
@@ -77,6 +77,7 @@ class CustomCanvas:
 
         # root Tk object
         self.root = tk.Tk()
+        self.root.title(name or 'Tk')
 
         # canvas attached to the root object
         self.canvas = tk.Canvas(self.root, width=width,
@@ -178,7 +179,7 @@ class EventListenerError(Exception):
 #############################################################################
 
 
-def creer_fenetre(largeur, hauteur, frequence=100):
+def creer_fenetre(largeur, hauteur, frequence=100, nom=None):
     """
     Crée une fenêtre de dimensions ``largeur`` x ``hauteur`` pixels.
     """
@@ -187,7 +188,7 @@ def creer_fenetre(largeur, hauteur, frequence=100):
         raise WindowError(
             "La fenêtre a déjà été créée avec la fonction \"creer_fenetre\" !"
         )
-    __canvas = CustomCanvas(largeur, hauteur, frequence)
+    __canvas = CustomCanvas(largeur, hauteur, frequence, name=nom)
 
 
 def fermer_fenetre():
