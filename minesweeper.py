@@ -275,14 +275,13 @@ def loop():
             build_grid(grid)
             fill_grid(grid, MINES)
 
-        buttons.clear()
-
         ev = donner_ev()
         ty = type_ev(ev)
         if ty == 'Quitte':
             break
 
         if playing:
+            buttons.clear()
             effacer_tout()
             if ty == 'ClicDroit' and ticks > 0:
                 mark(discovered, marked, unknown, ev)
@@ -296,8 +295,8 @@ def loop():
             ticks += delta
             last_time = time()
 
-        draw_board(grid, discovered, marked, unknown, playing, win)
-        draw_bottom_bar(ticks, playing, win)
+            draw_board(grid, discovered, marked, unknown, playing, win)
+            draw_bottom_bar(ticks, playing, win)
 
         attendre(1 / FRAMERATE)
 
