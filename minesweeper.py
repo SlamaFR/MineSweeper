@@ -193,9 +193,9 @@ def mark(discovered, marked, unknown, ev):
         unknown.discard((x, y))
 
 
-def discover(grid, discovered, ev):
+def discover(grid, discovered, marked, unknown, ev):
     x, y = pixel_to_cell(abscisse(ev), ordonnee(ev))
-    if not (0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT):
+    if not (0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT) or (x, y) in marked or (x, y) in unknown:
         return 0
     if grid[y][x]:
         return -1
@@ -287,7 +287,7 @@ def loop():
             if ty == 'ClicDroit' and ticks > 0:
                 mark(discovered, marked, unknown, ev)
             if ty == 'ClicGauche' and ticks > 0:
-                state = discover(grid, discovered, ev)
+                state = discover(grid, discovered, marked, unknown, ev)
                 if state != 0:
                     playing = False
                     win = state > 0
