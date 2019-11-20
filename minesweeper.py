@@ -125,7 +125,7 @@ def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: 
             else:
                 rectangle(x * CELL_SIZE, y * CELL_SIZE, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE,
                           remplissage='lightgray')
-                if (x, y) in marked and playing:
+                if (x, y) in marked and (playing or not win):
                     draw_flag(x, y)
                 elif (x, y) in unknown and playing:
                     xt, yt = cell_to_pixel(x, y)
