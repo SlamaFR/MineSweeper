@@ -40,7 +40,6 @@ def fill_grid(grid: list, amount: int, excluded: set):
     for _ in range(amount):
         x, y = randint(0, BOARD_WIDTH - 1), randint(0, BOARD_HEIGHT - 1)
         while grid[y][x] == -1 or (x, y) in excluded:
-            print(x, y)
             x, y = randint(0, BOARD_WIDTH - 1), randint(0, BOARD_HEIGHT - 1)
         grid[y][x] = -1
     set_adjacent_count(grid)
@@ -145,7 +144,7 @@ def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: 
                           remplissage='lightgray')
                 if (x, y) in marked and (playing or not win):
                     draw_flag(x, y)
-                elif (x, y) in unknown and playing:
+                elif (x, y) in unknown:
                     xt, yt = cell_to_pixel(x, y)
                     texte(xt, yt, '?', ancrage='center', taille=CELL_SIZE - 5)
             if grid[y][x] == -1 and not playing:
@@ -215,8 +214,7 @@ def mark(discovered: set, marked: set, unknown: set, ev: tuple):
         unknown.discard((x, y))
 
 
-def discover(grid: list, discovered: set, marked: set, unknown: set, ev: tuple):
-    x, y = pixel_to_cell(abscisse(ev), ordonnee(ev))
+def discover(grid: list, discovered: set, marked: set, unknown: set, x: int, y: int):
     if not (0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT) or (x, y) in marked or (x, y) in unknown:
         return 0
     if grid[y][x] == -1:
@@ -322,16 +320,30 @@ def loop():
                     excluded.add((x, y))
                     fill_grid(grid, MINES, excluded)
 
-                state = discover(grid, discovered, marked, unknown, ev)
+                state = discover(grid, discovered, marked, unknown, x, y)
                 if state != 0:
                     playing = False
                     win = state == 1
+
+            elif ty == 'DoubleClicGauche':
+                x, y = pixel_to_cell(abscisse(ev), ordonnee(ev))
+
+                if (x, y) in marked or (x, y) in unknown:
+                    continue
+
+                adjacent = get_adjacent_cells(x, y)
+                if grid[y][x] == len(adjacent.intersection(marked)):
+                    for (x, y) in adjacent.difference(marked):
+                        state = discover(grid, discovered, marked, unknown, x, y)
+                        if state != 0:
+                            playing = False
+                            win = state == 1
 
             delta = (time() - last_time)
             ticks += delta
             last_time = time()
 
-            if ty in ['ClicGauche', 'ClicDroit']:
+            if ty:
                 buttons.clear()
                 effacer_tout()
                 draw_board(grid, discovered, marked, unknown, playing, win)
