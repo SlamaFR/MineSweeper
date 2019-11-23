@@ -29,18 +29,21 @@ def format_time(time_to_format: int):
     return minutes + ":" + seconds
 
 
-def build_grid(grid: list):
+def build_grid():
+    grid = list()
     for i in range(BOARD_HEIGHT):
         grid.append([0] * BOARD_WIDTH)
+    return grid
 
 
-def fill_grid(grid: list, amount: int):
-    while amount > 0:
+def fill_grid(grid: list, amount: int, excluded: set):
+    for _ in range(amount):
         x, y = randint(0, BOARD_WIDTH - 1), randint(0, BOARD_HEIGHT - 1)
-        while grid[y][x] == 1:
+        while grid[y][x] == -1 or (x, y) in excluded:
+            print(x, y)
             x, y = randint(0, BOARD_WIDTH - 1), randint(0, BOARD_HEIGHT - 1)
-        grid[y][x] = 1
-        amount -= 1
+        grid[y][x] = -1
+    set_adjacent_count(grid)
 
 
 def draw_label(x: float, y: float, text: str, anchor: str = "center", outline: str = "black", bg: str = "white",
@@ -82,25 +85,40 @@ def draw_label(x: float, y: float, text: str, anchor: str = "center", outline: s
     return xa, ya, xb, yb
 
 
-def count_adjacent_bombs(grid: list, x: int, y: int):
-    count = 0
+def get_adjacent_cells(x: int, y: int):
+    result = set()
     if x > 0:
-        count += grid[y][x - 1]
+        result.add((x - 1, y))
         if y > 0:
-            count += grid[y - 1][x - 1]
+            result.add((x - 1, y - 1))
         if y < BOARD_HEIGHT - 1:
-            count += grid[y + 1][x - 1]
+            result.add((x - 1, y + 1))
     if x < BOARD_WIDTH - 1:
-        count += grid[y][x + 1]
+        result.add((x + 1, y))
         if y > 0:
-            count += grid[y - 1][x + 1]
+            result.add((x + 1, y - 1))
         if y < BOARD_HEIGHT - 1:
-            count += grid[y + 1][x + 1]
+            result.add((x + 1, y + 1))
     if y > 0:
-        count += grid[y - 1][x]
+        result.add((x, y - 1))
     if y < BOARD_HEIGHT - 1:
-        count += grid[y + 1][x]
+        result.add((x, y + 1))
+    return result
+
+
+def count_adjacent_bombs(grid: list, adjacents: set):
+    count = 0
+    for (x, y) in adjacents:
+        if grid[y][x] == -1:
+            count += 1
     return count
+
+
+def set_adjacent_count(grid: list):
+    for y, row in enumerate(grid):
+        for x, column in enumerate(row):
+            if grid[y][x] != -1:
+                grid[y][x] = count_adjacent_bombs(grid, get_adjacent_cells(x, y))
 
 
 def draw_flag(x: int, y: int):
@@ -116,12 +134,12 @@ def draw_flag(x: int, y: int):
 def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: bool, win: bool):
     for y in range(len(grid)):
         for x in range(len(grid[y])):
-            if (x, y) in discovered and not grid[y][x]:
+            if (x, y) in discovered and grid[y][x] >= 0:
                 rectangle(x * CELL_SIZE, y * CELL_SIZE, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE,
                           remplissage='white')
-                adjacent = count_adjacent_bombs(grid, x, y)
                 xt, yt = cell_to_pixel(x, y)
-                texte(xt, yt, str(adjacent), ancrage='center', couleur=DIGIT_COLORS[adjacent], taille=CELL_SIZE - 5)
+                if grid[y][x] > 0:
+                    texte(xt, yt, grid[y][x], ancrage='center', couleur=DIGIT_COLORS[grid[y][x]], taille=CELL_SIZE - 5)
             else:
                 rectangle(x * CELL_SIZE, y * CELL_SIZE, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE,
                           remplissage='lightgray')
@@ -130,7 +148,7 @@ def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: 
                 elif (x, y) in unknown and playing:
                     xt, yt = cell_to_pixel(x, y)
                     texte(xt, yt, '?', ancrage='center', taille=CELL_SIZE - 5)
-            if grid[y][x] and not playing:
+            if grid[y][x] == -1 and not playing:
                 if win:
                     draw_flag(x, y)
                 else:
@@ -201,7 +219,7 @@ def discover(grid: list, discovered: set, marked: set, unknown: set, ev: tuple):
     x, y = pixel_to_cell(abscisse(ev), ordonnee(ev))
     if not (0 <= x < BOARD_WIDTH and 0 <= y < BOARD_HEIGHT) or (x, y) in marked or (x, y) in unknown:
         return 0
-    if grid[y][x]:
+    if grid[y][x] == -1:
         return -1
     if (x, y) not in discovered:
         discovered.update(explore(grid, x, y))
@@ -219,7 +237,7 @@ def explore(grid: list, x: int, y: int, area: set = None):
 
     area.add((x, y))
 
-    if count_adjacent_bombs(grid, x, y):
+    if grid[y][x] > 0:
         return area
 
     if x > 0:
@@ -252,7 +270,8 @@ def set_running(running: bool):
 
 
 def loop():
-    creer_fenetre(BOARD_WIDTH * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT, nom='Démineur')
+    creer_fenetre(BOARD_WIDTH * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT, nom='Démineur',
+                  evenements=['ClicGauche', 'ClicDroit', 'DoubleClicGauche'])
 
     grid = list()
     discovered = set()
@@ -260,6 +279,7 @@ def loop():
     unknown = set()
     playing = True
     win = False
+    filled = False
     ticks = 0
     last_time = time()
     last_round_time = -1
@@ -273,12 +293,12 @@ def loop():
             unknown.clear()
             playing = True
             win = False
+            filled = False
             ticks = 0
             last_time = time()
             last_round_time = -1
 
-            build_grid(grid)
-            fill_grid(grid, MINES)
+            grid = build_grid()
 
             draw_board(grid, discovered, marked, unknown, playing, win)
             draw_bottom_bar(playing, win)
@@ -293,11 +313,19 @@ def loop():
         if playing:
             if ty == 'ClicDroit' and ticks > 0:
                 mark(discovered, marked, unknown, ev)
-            if ty == 'ClicGauche' and ticks > 0:
+            elif ty == 'ClicGauche' and ticks > 0:
+                x, y = pixel_to_cell(abscisse(ev), ordonnee(ev))
+
+                if not filled:
+                    filled = True
+                    excluded = get_adjacent_cells(x, y)
+                    excluded.add((x, y))
+                    fill_grid(grid, MINES, excluded)
+
                 state = discover(grid, discovered, marked, unknown, ev)
                 if state != 0:
                     playing = False
-                    win = state > 0
+                    win = state == 1
 
             delta = (time() - last_time)
             ticks += delta
