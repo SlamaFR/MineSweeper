@@ -138,10 +138,10 @@ def draw_flag(x: int, y: int):
              remplissage='red', epaisseur=thickness)
 
 
-def draw_cross(x: int, y: int):
+def draw_cross(x: int, y: int, tag: str = None):
     xt, yt = cell_to_pixel(x, y)
-    ligne(xt - CELL_SIZE / 3, yt - CELL_SIZE / 3, xt + CELL_SIZE / 3, yt + CELL_SIZE / 3, 'red', epaisseur=3)
-    ligne(xt - CELL_SIZE / 3, yt + CELL_SIZE / 3, xt + CELL_SIZE / 3, yt - CELL_SIZE / 3, 'red', epaisseur=3)
+    ligne(xt - CELL_SIZE / 3, yt - CELL_SIZE / 3, xt + CELL_SIZE / 3, yt + CELL_SIZE / 3, 'red', epaisseur=3, tag=tag)
+    ligne(xt - CELL_SIZE / 3, yt + CELL_SIZE / 3, xt + CELL_SIZE / 3, yt - CELL_SIZE / 3, 'red', epaisseur=3, tag=tag)
 
 
 def draw_mine(x: int, y: int):
@@ -306,6 +306,7 @@ def loop():
     last_time = time()
     last_round_time = -1
     losing_cell = tuple()
+    forbidden_move = tuple()
 
     while RUNNING:
         if START:
@@ -321,6 +322,7 @@ def loop():
             last_time = time()
             last_round_time = -1
             losing_cell = tuple()
+            forbidden_move = tuple()
 
             grid = build_grid()
 
@@ -368,6 +370,8 @@ def loop():
                             if state == -1:
                                 losing_cell = (x, y)
                             win = state == 1
+                else:
+                    forbidden_move = (ticks, (x, y))
 
             delta = (time() - last_time)
             ticks += delta
@@ -382,6 +386,14 @@ def loop():
             elif int(ticks) % 60 != last_round_time:
                 last_round_time = int(ticks) % 60
                 draw_time(ticks)
+
+            if forbidden_move:
+                if ticks - forbidden_move[0] < .75:
+                    x, y = forbidden_move[1]
+                    draw_cross(x, y, tag='forbidden')
+                else:
+                    effacer('forbidden')
+                    forbidden_move = tuple()
 
         attendre(1 / FRAMERATE)
 
