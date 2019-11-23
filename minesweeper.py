@@ -29,6 +29,13 @@ def format_time(time_to_format: int):
     return minutes + ":" + seconds
 
 
+def compute_text_size():
+    global BAR_HEIGHT
+    creer_fenetre(0, 0)
+    BAR_HEIGHT = taille_texte('X')[1] + 19
+    fermer_fenetre()
+
+
 def build_grid():
     grid = list()
     for i in range(BOARD_HEIGHT):
@@ -43,6 +50,42 @@ def fill_grid(grid: list, amount: int, excluded: set):
             x, y = randint(0, BOARD_WIDTH - 1), randint(0, BOARD_HEIGHT - 1)
         grid[y][x] = -1
     set_adjacent_count(grid)
+
+
+def get_adjacent_cells(x: int, y: int):
+    result = set()
+    if x > 0:
+        result.add((x - 1, y))
+        if y > 0:
+            result.add((x - 1, y - 1))
+        if y < BOARD_HEIGHT - 1:
+            result.add((x - 1, y + 1))
+    if x < BOARD_WIDTH - 1:
+        result.add((x + 1, y))
+        if y > 0:
+            result.add((x + 1, y - 1))
+        if y < BOARD_HEIGHT - 1:
+            result.add((x + 1, y + 1))
+    if y > 0:
+        result.add((x, y - 1))
+    if y < BOARD_HEIGHT - 1:
+        result.add((x, y + 1))
+    return result
+
+
+def count_adjacent_bombs(grid: list, adjacents: set):
+    count = 0
+    for (x, y) in adjacents:
+        if grid[y][x] == -1:
+            count += 1
+    return count
+
+
+def set_adjacent_count(grid: list):
+    for y, row in enumerate(grid):
+        for x, column in enumerate(row):
+            if grid[y][x] != -1:
+                grid[y][x] = count_adjacent_bombs(grid, get_adjacent_cells(x, y))
 
 
 def draw_label(x: float, y: float, text: str, anchor: str = "center", outline: str = "black", bg: str = "white",
@@ -82,42 +125,6 @@ def draw_label(x: float, y: float, text: str, anchor: str = "center", outline: s
     texte((xa + xb) / 2, (ya + yb) / 2, text, fg, ancrage="center",
           taille=size)
     return xa, ya, xb, yb
-
-
-def get_adjacent_cells(x: int, y: int):
-    result = set()
-    if x > 0:
-        result.add((x - 1, y))
-        if y > 0:
-            result.add((x - 1, y - 1))
-        if y < BOARD_HEIGHT - 1:
-            result.add((x - 1, y + 1))
-    if x < BOARD_WIDTH - 1:
-        result.add((x + 1, y))
-        if y > 0:
-            result.add((x + 1, y - 1))
-        if y < BOARD_HEIGHT - 1:
-            result.add((x + 1, y + 1))
-    if y > 0:
-        result.add((x, y - 1))
-    if y < BOARD_HEIGHT - 1:
-        result.add((x, y + 1))
-    return result
-
-
-def count_adjacent_bombs(grid: list, adjacents: set):
-    count = 0
-    for (x, y) in adjacents:
-        if grid[y][x] == -1:
-            count += 1
-    return count
-
-
-def set_adjacent_count(grid: list):
-    for y, row in enumerate(grid):
-        for x, column in enumerate(row):
-            if grid[y][x] != -1:
-                grid[y][x] = count_adjacent_bombs(grid, get_adjacent_cells(x, y))
 
 
 def draw_flag(x: int, y: int):
@@ -192,13 +199,6 @@ def left_click(ev: tuple):
     for (xa, ya, xb, yb), f in buttons.items():
         if xa <= x <= xb and ya <= y <= yb:
             f()
-
-
-def compute_text_size():
-    global BAR_HEIGHT
-    creer_fenetre(0, 0)
-    BAR_HEIGHT = taille_texte('X')[1] + 19
-    fermer_fenetre()
 
 
 def mark(discovered: set, marked: set, unknown: set, ev: tuple):
