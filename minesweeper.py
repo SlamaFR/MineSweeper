@@ -1,3 +1,4 @@
+import math
 from random import randint
 from time import time
 
@@ -130,36 +131,59 @@ def draw_label(x: float, y: float, text: str, anchor: str = "center", outline: s
 def draw_flag(x: int, y: int):
     thickness = CELL_SIZE / 20
     xt, yt = cell_to_pixel(x, y)
-    ligne(xt, yt - CELL_SIZE // 3, xt, yt + CELL_SIZE // 3, epaisseur=thickness)
-    ligne(xt - CELL_SIZE // 4, yt + CELL_SIZE // 3, xt + CELL_SIZE // 4, yt + CELL_SIZE // 3,
+    ligne(xt, yt - CELL_SIZE / 3, xt, yt + CELL_SIZE / 3, epaisseur=thickness)
+    ligne(xt - CELL_SIZE / 4, yt + CELL_SIZE / 3, xt + CELL_SIZE / 4, yt + CELL_SIZE / 3,
           epaisseur=thickness)
-    polygone([(xt, yt - CELL_SIZE // 3), (xt - CELL_SIZE // 3, yt - CELL_SIZE // 6), (xt, yt)],
+    polygone([(xt, yt - CELL_SIZE / 3), (xt - CELL_SIZE / 3, yt - CELL_SIZE / 6), (xt, yt)],
              remplissage='red', epaisseur=thickness)
 
 
-def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: bool, win: bool):
-    for y in range(len(grid)):
-        for x in range(len(grid[y])):
-            if (x, y) in discovered and grid[y][x] >= 0:
+def draw_cross(x: int, y: int):
+    xt, yt = cell_to_pixel(x, y)
+    ligne(xt - CELL_SIZE / 3, yt - CELL_SIZE / 3, xt + CELL_SIZE / 3, yt + CELL_SIZE / 3, 'red', epaisseur=3)
+    ligne(xt - CELL_SIZE / 3, yt + CELL_SIZE / 3, xt + CELL_SIZE / 3, yt - CELL_SIZE / 3, 'red', epaisseur=3)
+
+
+def draw_mine(x: int, y: int):
+    xt, yt = cell_to_pixel(x, y)
+    cercle(xt, yt, CELL_SIZE // 4, '#2c3e50', '#34495e', epaisseur=1.5)
+    for i in range(8):
+        theta = i * (2 * math.pi) / 8
+        ligne(xt + math.cos(theta) * CELL_SIZE / 4, yt + math.sin(theta) * CELL_SIZE / 4,
+              xt + math.cos(theta) * (3 * CELL_SIZE / 8), yt + math.sin(theta) * (3 * CELL_SIZE / 8),
+              couleur='#2c3e50', epaisseur=1.5)
+
+
+def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: bool, losing_cell: tuple):
+    for y, row in enumerate(grid):
+        for x, column in enumerate(row):
+            if (x, y) in discovered and column >= 0:
+                xt, yt = cell_to_pixel(x, y)
                 rectangle(x * CELL_SIZE, y * CELL_SIZE, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE,
                           remplissage='white')
-                xt, yt = cell_to_pixel(x, y)
-                if grid[y][x] > 0:
-                    texte(xt, yt, grid[y][x], ancrage='center', couleur=DIGIT_COLORS[grid[y][x]], taille=CELL_SIZE - 5)
+                if column > 0:
+                    texte(xt, yt, column, ancrage='center', couleur=DIGIT_COLORS[column], taille=CELL_SIZE - 5)
             else:
                 rectangle(x * CELL_SIZE, y * CELL_SIZE, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE,
-                          remplissage='lightgray')
-                if (x, y) in marked and (playing or not win):
+                          remplissage='red3' if losing_cell and (x, y) == losing_cell else 'lightgray')
+
+            if playing:
+                if (x, y) in marked:
                     draw_flag(x, y)
-                elif (x, y) in unknown:
+
+                if (x, y) in unknown:
                     xt, yt = cell_to_pixel(x, y)
                     texte(xt, yt, '?', ancrage='center', taille=CELL_SIZE - 5)
-            if grid[y][x] == -1 and not playing:
-                if win:
-                    draw_flag(x, y)
-                else:
-                    xt, yt = cell_to_pixel(x, y)
-                    texte(xt, yt, 'X', ancrage='center')
+            else:
+                if (x, y) in marked:
+                    if column >= 0:
+                        rectangle(x * CELL_SIZE, y * CELL_SIZE, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, 'lightgray')
+                        draw_mine(x, y)
+                        draw_cross(x, y)
+                    else:
+                        draw_flag(x, y)
+                elif column == -1:
+                    draw_mine(x, y)
 
 
 def draw_bottom_bar(playing: bool, win: bool):
@@ -176,10 +200,10 @@ def draw_bottom_bar(playing: bool, win: bool):
         buttons[(xa, ya, xb, yb)] = lambda: set_start(True)
         offset += xb - xa + 5
         if not win:
-            texte(BOARD_WIDTH * CELL_SIZE - 10 - offset, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT // 2, "Perdu !",
+            texte(BOARD_WIDTH * CELL_SIZE - 10 - offset, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT / 2, "Perdu !",
                   ancrage='e', couleur='red', taille=24)
         else:
-            texte(BOARD_WIDTH * CELL_SIZE - 10 - offset, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT // 2, "Gagné !",
+            texte(BOARD_WIDTH * CELL_SIZE - 10 - offset, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT / 2, "Gagné !",
                   ancrage='e', couleur='green', taille=24)
     else:
         xa, ya, xb, yb = draw_label(BOARD_WIDTH * CELL_SIZE - 5, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT - 5, 'Quitter',
@@ -190,7 +214,7 @@ def draw_bottom_bar(playing: bool, win: bool):
 def draw_time(ticks: float):
     effacer('time')
     current_time = format_time(int(ticks))
-    texte(10, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT // 2, current_time, ancrage='w', couleur='white',
+    texte(10, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT / 2, current_time, ancrage='w', couleur='white',
           taille=24, tag='time')
 
 
@@ -281,6 +305,7 @@ def loop():
     ticks = 0
     last_time = time()
     last_round_time = -1
+    losing_cell = tuple()
 
     while RUNNING:
         if START:
@@ -295,10 +320,11 @@ def loop():
             ticks = 0
             last_time = time()
             last_round_time = -1
+            losing_cell = tuple()
 
             grid = build_grid()
 
-            draw_board(grid, discovered, marked, unknown, playing, win)
+            draw_board(grid, discovered, marked, unknown, playing, losing_cell)
             draw_bottom_bar(playing, win)
 
         ev = donner_ev()
@@ -323,6 +349,8 @@ def loop():
                 state = discover(grid, discovered, marked, unknown, x, y)
                 if state != 0:
                     playing = False
+                    if state == -1:
+                        losing_cell = (x, y)
                     win = state == 1
 
             elif ty == 'DoubleClicGauche':
@@ -337,6 +365,8 @@ def loop():
                         state = discover(grid, discovered, marked, unknown, x, y)
                         if state != 0:
                             playing = False
+                            if state == -1:
+                                losing_cell = (x, y)
                             win = state == 1
 
             delta = (time() - last_time)
@@ -346,7 +376,7 @@ def loop():
             if ty:
                 buttons.clear()
                 effacer_tout()
-                draw_board(grid, discovered, marked, unknown, playing, win)
+                draw_board(grid, discovered, marked, unknown, playing, losing_cell)
                 draw_bottom_bar(playing, win)
                 draw_time(ticks)
             elif int(ticks) % 60 != last_round_time:
