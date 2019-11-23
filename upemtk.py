@@ -61,6 +61,7 @@ class CustomCanvas:
     _on_osx = sys.platform.startswith("darwin")
     _ev_mapping = {
         'ClicGauche': '<Button-1>',
+        'DoubleClicGauche': '<Double-Button-1>',
         'ClicMilieu': '<Button-2>',
         'ClicDroit': '<Button-2>' if _on_osx else '<Button-3>',
         'Deplacement': '<Motion>',
@@ -179,7 +180,7 @@ class EventListenerError(Exception):
 #############################################################################
 
 
-def creer_fenetre(largeur, hauteur, frequence=100, nom=None):
+def creer_fenetre(largeur, hauteur, frequence=100, evenements=None, nom=None):
     """
     Crée une fenêtre de dimensions ``largeur`` x ``hauteur`` pixels.
     """
@@ -188,7 +189,7 @@ def creer_fenetre(largeur, hauteur, frequence=100, nom=None):
         raise WindowError(
             "La fenêtre a déjà été créée avec la fonction \"creer_fenetre\" !"
         )
-    __canvas = CustomCanvas(largeur, hauteur, frequence, name=nom)
+    __canvas = CustomCanvas(largeur, hauteur, frequence, evenements, nom)
 
 
 def fermer_fenetre():
