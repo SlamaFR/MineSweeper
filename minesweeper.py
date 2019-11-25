@@ -148,8 +148,8 @@ def draw_mine(x: int, y: int):
     xt, yt = cell_to_pixel(x, y)
     for i in range(8):
         theta = i * (2 * math.pi) / 8
-        ligne(xt, yt, xt + math.cos(theta) * (2 * CELL_SIZE / 5), yt + math.sin(theta) * (2 * CELL_SIZE / 5),
-              couleur='#2c3e50', epaisseur=CELL_SIZE / 10)
+        fleche(xt, yt, xt + math.cos(theta) * (3 * CELL_SIZE / 8), yt + math.sin(theta) * (3 * CELL_SIZE / 8),
+               couleur='#2c3e50', epaisseur=CELL_SIZE / 10)
     cercle(xt, yt, CELL_SIZE / 4, '#2c3e50', '#34495e', epaisseur=CELL_SIZE / 15)
 
 
