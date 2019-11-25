@@ -146,12 +146,11 @@ def draw_cross(x: int, y: int, tag: str = None):
 
 def draw_mine(x: int, y: int):
     xt, yt = cell_to_pixel(x, y)
-    cercle(xt, yt, CELL_SIZE // 4, '#2c3e50', '#34495e', epaisseur=1.5)
     for i in range(8):
         theta = i * (2 * math.pi) / 8
-        ligne(xt + math.cos(theta) * CELL_SIZE / 4, yt + math.sin(theta) * CELL_SIZE / 4,
-              xt + math.cos(theta) * (3 * CELL_SIZE / 8), yt + math.sin(theta) * (3 * CELL_SIZE / 8),
-              couleur='#2c3e50', epaisseur=1.5)
+        ligne(xt, yt, xt + math.cos(theta) * (2 * CELL_SIZE / 5), yt + math.sin(theta) * (2 * CELL_SIZE / 5),
+              couleur='#2c3e50', epaisseur=CELL_SIZE / 10)
+    cercle(xt, yt, CELL_SIZE / 4, '#2c3e50', '#34495e', epaisseur=CELL_SIZE / 15)
 
 
 def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: bool, losing_cell: tuple):
