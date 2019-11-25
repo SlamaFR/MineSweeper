@@ -15,4 +15,5 @@ The goal is to find all the mines hidden in the grid. To do so, you have to clic
 
 ![](img/start.png)
 ![](img/ingame.png)
-![](img/end.png)
+![](img/end_win.png)
+![](img/end_lose.png)
