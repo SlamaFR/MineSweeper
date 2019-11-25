@@ -2,7 +2,7 @@ import math
 from random import randint
 from time import time
 
-from upemtk import *
+from UpemTK.upemtk import *
 
 CELL_SIZE = 30
 BOARD_WIDTH = 30
