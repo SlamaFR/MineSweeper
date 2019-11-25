@@ -176,13 +176,14 @@ def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: 
             else:
                 if (x, y) in marked:
                     if column >= 0:
-                        rectangle(x * CELL_SIZE, y * CELL_SIZE, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, 'lightgray')
+                        rectangle(x * CELL_SIZE, y * CELL_SIZE, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE,
+                                  remplissage='lightgray')
                         draw_mine(x, y)
                         draw_cross(x, y)
                     else:
                         draw_flag(x, y)
                 elif column == -1:
-                    draw_mine(x, y)
+                    draw_mine(x, y) if losing_cell else draw_flag(x, y)
 
 
 def draw_bottom_bar(playing: bool, win: bool):
