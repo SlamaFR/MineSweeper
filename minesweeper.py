@@ -244,18 +244,21 @@ def discover(grid: list, discovered: set, marked: set, unknown: set, x: int, y: 
     if grid[y][x] == -1:
         return -1
     if (x, y) not in discovered:
-        discovered.update(explore(grid, x, y))
+        discovered.update(explore(grid, marked, unknown, x, y))
     if BOARD_WIDTH * BOARD_HEIGHT - MINES == len(discovered):
         return 1
     return 0
 
 
-def explore(grid: list, x: int, y: int, area: set = None):
+def explore(grid: list, marked: set, unknown: set, x: int, y: int, area: set = None):
     if not area:
         area = set()
 
     if (x, y) in area:
         return
+
+    if (x, y) in marked or (x, y) in unknown:
+        return area
 
     area.add((x, y))
 
@@ -263,21 +266,21 @@ def explore(grid: list, x: int, y: int, area: set = None):
         return area
 
     if x > 0:
-        explore(grid, x - 1, y, area)
+        explore(grid, marked, unknown, x - 1, y, area)
         if y > 0:
-            explore(grid, x - 1, y - 1, area)
+            explore(grid, marked, unknown, x - 1, y - 1, area)
         if y < BOARD_HEIGHT - 1:
-            explore(grid, x - 1, y + 1, area)
+            explore(grid, marked, unknown, x - 1, y + 1, area)
     if x < BOARD_WIDTH - 1:
-        explore(grid, x + 1, y, area)
+        explore(grid, marked, unknown, x + 1, y, area)
         if y > 0:
-            explore(grid, x + 1, y - 1, area)
+            explore(grid, marked, unknown, x + 1, y - 1, area)
         if y < BOARD_HEIGHT - 1:
-            explore(grid, x + 1, y + 1, area)
+            explore(grid, marked, unknown, x + 1, y + 1, area)
     if y > 0:
-        explore(grid, x, y - 1, area)
+        explore(grid, marked, unknown, x, y - 1, area)
     if y < BOARD_HEIGHT - 1:
-        explore(grid, x, y + 1, area)
+        explore(grid, marked, unknown, x, y + 1, area)
     return area
 
 
