@@ -189,8 +189,7 @@ def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: 
 
 
 def draw_bottom_bar(playing: bool, win: bool, mines: int):
-    rectangle(0, WINDOW_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT + BAR_HEIGHT,
-              remplissage='black')
+    rectangle(0, WINDOW_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT + BAR_HEIGHT, remplissage='black')
     if not playing:
         xa, ya, xb, yb = draw_label(WINDOW_WIDTH - 5, WINDOW_HEIGHT + BAR_HEIGHT - 5, 'Quitter', 'se')
         offset = xb - xa + 5
@@ -212,11 +211,17 @@ def draw_bottom_bar(playing: bool, win: bool, mines: int):
               couleur='white')
 
 
-def draw_time(ticks: float):
+def draw_time(ticks: float, paused: bool):
     effacer('time')
     current_time = format_time(int(ticks))
-    texte(10, WINDOW_HEIGHT + BAR_HEIGHT / 2, current_time, ancrage='w', couleur='white',
-          taille=24, tag='time')
+    texte(10, WINDOW_HEIGHT + BAR_HEIGHT / 2, 'Pause' if paused else current_time, ancrage='w',
+          couleur='green' if paused else 'white', taille=24, tag='time')
+
+
+def draw_all(grid, discovered, marked, unknown, playing, paused, win, ticks, losing_cell):
+    draw_board(grid, discovered, marked, unknown, playing, losing_cell)
+    draw_bottom_bar(playing, win, MINES - len(marked))
+    draw_time(ticks, paused)
 
 
 def left_click(ev: tuple):
@@ -297,7 +302,7 @@ def set_running(running: bool):
 
 def loop():
     creer_fenetre(WINDOW_WIDTH, WINDOW_HEIGHT + BAR_HEIGHT, nom='Démineur',
-                  evenements=['ClicGauche', 'ClicDroit', 'DoubleClicGauche'])
+                  evenements=['ClicGauche', 'ClicDroit', 'DoubleClicGauche', 'Touche'])
 
     grid = list()
     discovered = set()
@@ -306,6 +311,7 @@ def loop():
     playing = True
     win = False
     filled = False
+    paused = False
     ticks = 0
     last_time = time()
     last_round_time = -1
@@ -322,6 +328,7 @@ def loop():
             playing = True
             win = False
             filled = False
+            paused = False
             ticks = 0
             last_time = time()
             last_round_time = -1
@@ -339,8 +346,18 @@ def loop():
             break
         elif ty == 'ClicGauche':
             left_click(ev)
+        elif ty == 'Touche':
+            if touche(ev).lower() == 'p':
+                paused = not paused
+                if paused:
+                    buttons.clear()
+                    effacer_tout()
+                    draw_all(grid, discovered, marked, unknown, playing, paused, win, ticks, losing_cell)
 
-        if playing:
+        delta = (time() - last_time)
+        last_time = time()
+
+        if playing and not paused:
             if ty == 'ClicDroit' and ticks > 0:
                 mark(discovered, marked, unknown, ev)
             elif ty == 'ClicGauche' and ticks > 0:
@@ -377,19 +394,15 @@ def loop():
                 else:
                     forbidden_move = (ticks, (x, y))
 
-            delta = (time() - last_time)
             ticks += delta
-            last_time = time()
 
             if ty:
                 buttons.clear()
                 effacer_tout()
-                draw_board(grid, discovered, marked, unknown, playing, losing_cell)
-                draw_bottom_bar(playing, win, MINES - len(marked))
-                draw_time(ticks)
+                draw_all(grid, discovered, marked, unknown, playing, paused, win, ticks, losing_cell)
             elif int(ticks) % 60 != last_round_time:
                 last_round_time = int(ticks) % 60
-                draw_time(ticks)
+                draw_time(ticks, paused)
 
             if forbidden_move:
                 if ticks - forbidden_move[0] < .75:
