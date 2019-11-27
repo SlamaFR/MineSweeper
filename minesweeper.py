@@ -7,6 +7,8 @@ from UpemTK.upemtk import *
 CELL_SIZE = 30
 BOARD_WIDTH = 30
 BOARD_HEIGHT = 16
+WINDOW_WIDTH = CELL_SIZE * BOARD_WIDTH
+WINDOW_HEIGHT = CELL_SIZE * BOARD_HEIGHT
 MINES = BOARD_HEIGHT * BOARD_WIDTH // 7
 FRAMERATE = 50
 BAR_HEIGHT = -1
@@ -186,35 +188,34 @@ def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: 
                     draw_mine(x, y) if losing_cell else draw_flag(x, y)
 
 
-def draw_bottom_bar(playing: bool, win: bool):
-    rectangle(0, BOARD_HEIGHT * CELL_SIZE, BOARD_WIDTH * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT,
+def draw_bottom_bar(playing: bool, win: bool, mines: int):
+    rectangle(0, WINDOW_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT + BAR_HEIGHT,
               remplissage='black')
     if not playing:
-        offset = 0
-        xa, ya, xb, yb = draw_label(BOARD_WIDTH * CELL_SIZE - 5, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT - 5, 'Quitter',
-                                    'se')
-        offset += xb - xa + 5
+        xa, ya, xb, yb = draw_label(WINDOW_WIDTH - 5, WINDOW_HEIGHT + BAR_HEIGHT - 5, 'Quitter', 'se')
+        offset = xb - xa + 5
         buttons[(xa, ya, xb, yb)] = lambda: set_running(False)
-        xa, ya, xb, yb = draw_label(BOARD_WIDTH * CELL_SIZE - 5 - offset, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT - 5,
-                                    'Rejouer', 'se')
+        xa, ya, xb, yb = draw_label(WINDOW_WIDTH - 5 - offset, WINDOW_HEIGHT + BAR_HEIGHT - 5, 'Rejouer', 'se')
         buttons[(xa, ya, xb, yb)] = lambda: set_start(True)
         offset += xb - xa + 5
         if not win:
-            texte(BOARD_WIDTH * CELL_SIZE - 10 - offset, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT / 2, "Perdu !",
-                  ancrage='e', couleur='red', taille=24)
+            texte(WINDOW_WIDTH - 10 - offset, WINDOW_HEIGHT + BAR_HEIGHT / 2, "Perdu !", ancrage='e', couleur='red',
+                  taille=24)
         else:
-            texte(BOARD_WIDTH * CELL_SIZE - 10 - offset, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT / 2, "Gagné !",
-                  ancrage='e', couleur='green', taille=24)
+            texte(WINDOW_WIDTH - 10 - offset, WINDOW_HEIGHT + BAR_HEIGHT / 2, "Gagné !", ancrage='e', couleur='green',
+                  taille=24)
     else:
-        xa, ya, xb, yb = draw_label(BOARD_WIDTH * CELL_SIZE - 5, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT - 5, 'Quitter',
-                                    'se')
+        xa, ya, xb, yb = draw_label(WINDOW_WIDTH - 5, WINDOW_HEIGHT + BAR_HEIGHT - 5, 'Quitter', 'se')
+        offset = xb - xa + 5
         buttons[(xa, ya, xb, yb)] = lambda: set_running(False)
+        texte(WINDOW_WIDTH - 5 - offset, WINDOW_HEIGHT + BAR_HEIGHT / 2, "Mines : " + str(mines), ancrage='e',
+              couleur='white')
 
 
 def draw_time(ticks: float):
     effacer('time')
     current_time = format_time(int(ticks))
-    texte(10, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT / 2, current_time, ancrage='w', couleur='white',
+    texte(10, WINDOW_HEIGHT + BAR_HEIGHT / 2, current_time, ancrage='w', couleur='white',
           taille=24, tag='time')
 
 
@@ -295,7 +296,7 @@ def set_running(running: bool):
 
 
 def loop():
-    creer_fenetre(BOARD_WIDTH * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE + BAR_HEIGHT, nom='Démineur',
+    creer_fenetre(WINDOW_WIDTH, WINDOW_HEIGHT + BAR_HEIGHT, nom='Démineur',
                   evenements=['ClicGauche', 'ClicDroit', 'DoubleClicGauche'])
 
     grid = list()
@@ -330,7 +331,7 @@ def loop():
             grid = build_grid()
 
             draw_board(grid, discovered, marked, unknown, playing, losing_cell)
-            draw_bottom_bar(playing, win)
+            draw_bottom_bar(playing, win, MINES - len(marked))
 
         ev = donner_ev()
         ty = type_ev(ev)
@@ -384,7 +385,7 @@ def loop():
                 buttons.clear()
                 effacer_tout()
                 draw_board(grid, discovered, marked, unknown, playing, losing_cell)
-                draw_bottom_bar(playing, win)
+                draw_bottom_bar(playing, win, MINES - len(marked))
                 draw_time(ticks)
             elif int(ticks) % 60 != last_round_time:
                 last_round_time = int(ticks) % 60
