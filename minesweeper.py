@@ -218,7 +218,8 @@ def draw_time(ticks: float, paused: bool):
           couleur='green' if paused else 'white', taille=24, tag='time')
 
 
-def draw_all(grid, discovered, marked, unknown, playing, paused, win, ticks, losing_cell):
+def draw_all(grid: list, discovered: set, marked: set, unknown: set, playing: bool, paused: bool, win: bool,
+             ticks: int, losing_cell: tuple):
     draw_board(grid, discovered, marked, unknown, playing, losing_cell)
     draw_bottom_bar(playing, win, MINES - len(marked))
     draw_time(ticks, paused)
