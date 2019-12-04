@@ -1,5 +1,7 @@
 # MineSweeper
 
+[![CodeFactor](https://www.codefactor.io/repository/github/slamafr/minesweeper/badge?s=82b8a7e557c90449388e3026e6617e2351d2b857)](https://www.codefactor.io/repository/github/slamafr/minesweeper)
+
 This game is written in Python using the `upemtk` library from the University of Marne-la-Vallée in France.
 
 I edited the library to add an event listener system, allowing me to click a button at any time regardless of the program throttling.

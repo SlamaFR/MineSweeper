@@ -41,7 +41,7 @@ def compute_text_size():
 
 def build_grid():
     grid = list()
-    for i in range(BOARD_HEIGHT):
+    for _ in range(BOARD_HEIGHT):
         grid.append([0] * BOARD_WIDTH)
     return grid
 
@@ -185,7 +185,10 @@ def draw_board(grid: list, discovered: set, marked: set, unknown: set, playing: 
                     else:
                         draw_flag(x, y)
                 elif column == -1:
-                    draw_mine(x, y) if losing_cell else draw_flag(x, y)
+                    if losing_cell:
+                        draw_mine(x, y)
+                    else:
+                        draw_flag(x, y)
 
 
 def draw_bottom_bar(playing: bool, win: bool, mines: int):
