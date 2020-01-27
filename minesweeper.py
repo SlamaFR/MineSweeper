@@ -1,3 +1,4 @@
+import argparse
 import math
 from random import randint
 from time import time
@@ -7,10 +8,7 @@ from UpemTK.upemtk import *
 CELL_SIZE = 30
 BOARD_WIDTH = 30
 BOARD_HEIGHT = 16
-WINDOW_WIDTH = CELL_SIZE * BOARD_WIDTH
-WINDOW_HEIGHT = CELL_SIZE * BOARD_HEIGHT
-MINES = BOARD_HEIGHT * BOARD_WIDTH // 7
-FRAMERATE = 50
+FRAMERATE = 20
 BAR_HEIGHT = -1
 
 DIGIT_COLORS = ["white", "blue", "green", "red", "purple", "brown", "teal", "black", "gray"]
@@ -422,6 +420,28 @@ def loop():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-W", metavar="width", type=int, nargs='?', help="board width", const=BOARD_WIDTH)
+    parser.add_argument("-H", metavar="height", type=int, nargs='?', help="board height", const=BOARD_HEIGHT)
+    parser.add_argument("--mines", metavar="rate", type=float, nargs='?', help="percentage of mines",
+                        const=14)
+    args = parser.parse_args()
+
+    print(args)
+
+    BOARD_WIDTH = args.W or BOARD_WIDTH
+    BOARD_HEIGHT = args.H or BOARD_HEIGHT
+    WINDOW_WIDTH = CELL_SIZE * BOARD_WIDTH
+    WINDOW_HEIGHT = CELL_SIZE * BOARD_HEIGHT
+
+    if args.mines > 100:
+        args.mines = 100
+
+    if int(BOARD_HEIGHT * BOARD_WIDTH * args.mines / 100) > BOARD_HEIGHT * BOARD_WIDTH - 9:
+        raise ValueError("Too many mines")
+
+    MINES = int(BOARD_HEIGHT * BOARD_WIDTH * (args.mines / 100 or .14))
+
     buttons = dict()
     compute_text_size()
     loop()
